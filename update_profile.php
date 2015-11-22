@@ -1,0 +1,145 @@
+<?php
+  ob_start(); // This is buffer area where cookies and session are set and again set to expire them 
+  session_start();
+  function validateForm($email_param, $password_param, $confirm_password_param) {
+    $errors = array();
+    // echo(empty($email_param));
+    include("shared/config.php");
+    if($email_param == ""){
+      array_push($errors, "Email is required");
+    }
+    if($password_param == ""){
+      array_push($errors, "Password is required");
+    }
+    $current_user_email = $_SESSION["login_user"];
+    $user = "select * from users where email = '$email_param' not in (select email from users where email != '$current_user_email')";
+    $result = $conn->query($user);
+    if($result->num_rows > 0) {
+      array_push($errors, "This Email has already been taken");
+      $conn->close();
+    }
+    if($password_param != $confirm_password_param) {
+      array_push($errors, "Password Confiramtion is not matched with password");
+    }
+    $password_length = strlen($password_param);
+    if($password_length <= 8) {
+      array_push($errors, "Password must be of at least 8 characters");
+    }
+    $return_values = array($errors);
+    if(count($errors) > 0) {
+      array_push($return_values, "true");
+      return $return_values;
+    } else {
+      array_push($return_values, "false");
+      return $return_values;
+    }
+  }
+  if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $first_name = $_POST["first_name"];
+    $last_name = $_POST["last_name"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $confirm_password = $_POST["confirm_password"];
+
+    if(validateForm($email, $password, $confirm_password)[1] == "true") {
+      echo "<div class='alert alert-danger'>";
+      echo "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>";
+      echo "<ul>";
+      $errors_length = count(validateForm($email, $password, $confirm_password)[0]);
+      for($x = 0; $x < $errors_length; $x++) {
+        echo "<li>" . validateForm($email, $password, $confirm_password)[0][$x] . "</li>";
+      }
+      echo "</ul>";
+      echo "</div>";
+    } else {
+      $pw = str_replace(' ', '', $password);
+      // file_get_contents() //SQL Injection defence!
+      $image = addslashes($_FILES['profile_image']['tmp_name']); 
+      $image_name = addslashes($_FILES['profile_image']['name']);
+      $image = file_get_contents($image);
+      $image = base64_encode($image);
+      include("shared/config.php");
+      $current_user_email = $_SESSION["login_user"];
+      $sql = "update users set first_name='$first_name', last_name = '$last_name', email = '$email', password = sha2('$pw',224), image='$image', image_name='$image_name' where email = '$current_user_email'";
+
+      if (mysqli_query($conn, $sql)) {
+        $_SESSION["login_user"] = $email;
+        setcookie("flash_success", "Profile Updated.", time() + 3600);
+        header("Location: profile.php");
+        $conn->close();
+      } else {
+        setcookie("flash_danger", "Something went wrong", time() + 3600);
+        header("Location: profile.php");
+      }
+      
+    }
+  }
+?>
+<div class="user_profile">
+  <h1>Edit Profile</h1>
+  <hr>
+  <form action="update_profile.php" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <!-- left column -->
+        <div class="col-md-3">
+          <div class="text-center">
+            <img src="//placehold.it/100" class="avatar img-circle" alt="avatar">
+            <h6>Upload a different photo...</h6>
+            
+            <input type="file" name="profile_image" class="form-control">
+          </div>
+        </div>
+        
+        <!-- edit form column -->
+        <div class="col-md-9">
+          <div class="alert alert-info alert-dismissable">
+            <i class="glyphicon glyphicon-info-sign"></i> This is an <strong>.alert</strong>. Use this to show important messages to the user.
+          </div>
+
+          <h3>Personal info</h3>
+          <div class="row form-group">
+            <label class="col-lg-3 control-label">First name:</label>
+            <div class="col-lg-8">
+              <input type="text" name="first_name" class="form-control" id="" value="<?php echo($first_name); ?>" placeholder="First Name">
+            </div>
+          </div>
+          <div class="row form-group">
+            <label class="col-lg-3 control-label">Last name:</label>
+            <div class="col-lg-8">
+              <input type="text" name="last_name" class="form-control" id="" value="<?php echo($last_name); ?>" placeholder="Last Name">
+            </div>
+          </div>
+          <div class="row form-group">
+            <label class="col-lg-3 control-label">Email:</label>
+            <div class="col-lg-8">
+              <input type="email" name="email" class="form-control" id="" value="<?php echo($email); ?>" placeholder="Email Address">
+            </div>
+          </div>
+          <div class="row form-group">
+            <label class="col-md-3 control-label">Password:</label>
+            <div class="col-md-8">
+              <input type="password" name="password" class="form-control" id="" value="" placeholder="Password">
+            </div>
+          </div>
+          <div class="row form-group">
+            <label class="col-md-3 control-label">Confirm Password:</label>
+            <div class="col-md-8">
+              <input type="password" name="confirm_password" class="form-control" id="" value="" placeholder="Password Confirmation">
+            </div>
+          </div>
+          <div class="row form-group">
+            <label class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+              <button type="submit" class="btn btn-default">Save</button>
+            </div>
+          </div>
+        </div>
+    </div>
+  </form>
+</div>
+<hr>
+<?php
+  $pagemaincontent = ob_get_contents();
+  ob_end_clean();
+  include("application.php");
+?>

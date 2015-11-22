@@ -1,0 +1,17 @@
+.about_us {
+  font-size: 18px;
+}
+
+.user_profile .avatar {
+  width: 195px;
+  height: 201px;
+}
+.nav-img {
+	width: 52px;
+	height: 46px;
+	margin-top: 7px;
+	border-radius: 23px;
+}
+.event_images {
+  height: 110px !important;
+}
