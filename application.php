@@ -1,9 +1,12 @@
+<!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="UTF-8">
 		<title>Event Management System</title>
 		<script src="assets/js/jQuery.js"></script>
 		<link rel="stylesheet" type="text/css" href="assets/css/bootstrap-theme.css">
 		<link rel="stylesheet" type="text/css" href="assets/css/home.css">
+		
 		<script src="assets/js/bootstrap.js"></script>
 	</head>
 	<body>

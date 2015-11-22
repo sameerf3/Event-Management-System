@@ -44,7 +44,6 @@
     $name = $_POST["event_name"];
     $price = $_POST["event_price"];
     $description = $_POST["event_description"];
-    $description = str_replace(' ', '', $description);
     $event_images = $_FILES["event_images"]["name"];
     include("shared/config.php");
     if(validateForm($name, $price, $description, $field["name"])[1] == "true") {
@@ -109,9 +108,7 @@
         </div>
         <div class="form-group">
           <label>Description</label>
-          <textarea class="form-control" rows="7" placeholder="About Event" name="event_description">
-            <?php echo($description != "" ? $description : $field["description"]); ?>
-          </textarea>
+          <textarea class="form-control" rows="7" placeholder="About Event" name="event_description"><?php echo($description != "" ? $description : $field["description"]); ?></textarea>
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-default">Update</button>
@@ -124,14 +121,14 @@
             <div class="row">
               <?php 
                 try {
-                  $event_images = "SELECT `event_image`, `event_image_name` FROM `event_images` WHERE event_category_id=$event_id";
+                  $event_images = "SELECT `id`, `event_image`, `event_image_name` FROM `event_images` WHERE event_category_id=$event_id";
                   $result_images = mysqli_query($conn, $event_images);
                   if ($result_images->num_rows > 0) {
                     while($row = $result_images->fetch_assoc()) {
                   ?>
-                    <div class="col-xs-6 col-md-3">
-                      <a href="#" class="thumbnail">
-                        <?php echo('<img src="data:image;base64,' . $row['event_image'] . '">'); ?>
+                    <div class="col-xs-4" data-toggle="tooltip" data-placement="left" title="Click for options">
+                      <a href="#" class="thumbnail" data-toggle="popover" data-content="<a onclick='return confirm('Are you sure?');' href='remove_event_image.php?id=<?php echo($row['id']); ?>&event_id=<?php echo($event_id); ?>'><i class='glyphicon glyphicon-trash'></i> Remove</a>">
+                        <?php echo('<img class="event_images" src="data:image;base64,' . $row['event_image'] . '">'); ?>
                       </a>
                     </div>
                   <?php
@@ -144,8 +141,18 @@
                 } catch(Exception $e) {
                   echo "<div class='alert alert-danger'>". $e->getMessage() ."</div>";
                 }
-               ?>
-             </div>
+              ?>
+            </div>
+            <script type="text/javascript">
+              $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+                $('[data-toggle="popover"]').popover({
+                  placement: "top",
+                  html: true,
+                  trigger: "focus"
+                });
+              })
+            </script>
           </div>
           <div class="panel-footer">
             <input type="file" name="event_images[]" class="form-control" multiple="multiple">

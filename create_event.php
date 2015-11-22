@@ -72,7 +72,7 @@
 
             $result_for_event_images = mysqli_query($conn, $sql_event_images);
             if($result_for_event_images == true) {
-              setcookie("flash_danger", "Event Saved Successfully", time() + 3600);
+              setcookie("flash_success", "Event Saved Successfully", time() + 3600);
               header("Location: manage_events.php");
             } else {
               setcookie("flash_danger", "Something went wrong", time() + 3600);
@@ -96,15 +96,15 @@
       <div class="col-md-6">
         <div class="form-group">
           <label>Name</label>
-          <input class="form-control" placeholder="Event Name" name="event_name" type="text" />  
+          <input class="form-control" placeholder="Event Name" value='<?php echo($name != "" ? $name : ""); ?>' name="event_name" type="text" />  
         </div>
         <div class="form-group">
           <label>Price</label>
-          <input class="form-control" placeholder="Price" name="event_price" type="text" />  
+          <input class="form-control" placeholder="Price" value='<?php echo($price != "" ? $price : ""); ?>' name="event_price" type="text" />  
         </div>
         <div class="form-group">
           <label>Description</label>
-          <textarea class="form-control" rows="7" placeholder="About Event" name="event_description"></textarea>
+          <textarea class="form-control" rows="7" placeholder="About Event" name="event_description"><?php echo($description != "" ? $description : ""); ?></textarea>
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-default">Create</button>
