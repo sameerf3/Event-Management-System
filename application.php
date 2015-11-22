@@ -23,6 +23,5 @@
 			<?php include("shared/footer.php") ?>
 		</footer>
 		<?php include("sign_in.php") ?>
-
 	</body>
 </html>

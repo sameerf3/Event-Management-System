@@ -1,29 +1,29 @@
+<?php
+  require_once('class.event.php');
+  $event = new Event;
+  $events = $event->get_all_events();
+?>
 <blockquote><h2>Recent Events</h2></blockquote>
 <div class="row">
-  <?php 
-    include("shared/config.php");
-    $sql = "SELECT * FROM `event_categories` WHERE 1";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
+  <?php
+    if ($events->num_rows > 0) {
       // output data of each row
-      while($row = $result->fetch_assoc()) {
-        $event_id = str_replace(' ', '', $row["id"]);
-        $event_image_sql = "SELECT * FROM `event_images` WHERE event_category_id = $event_id limit 1";
-        $result_event_img = mysqli_query($conn, $event_image_sql);
-        $field = mysqli_fetch_array($result_event_img);
+      while($row = $events->fetch_assoc()) {
+        $event_image_field = $event->get_event_image($row["id"]);
     ?>
       <div class="col-sm-6 col-md-3">
         <div class="thumbnail">
           <?php
-            if (!empty($field['event_image'])) {
-              echo('<img src="data:image;base64,' . $field['event_image'] . '">');   
+            if (!empty($event_image_field['event_image'])) {
+              echo('<img src="data:image;base64,' . $event_image_field['event_image'] . '">');   
             } else {
               echo('<img style="height: 128px !important;" src="assets/images/notfound.png">');  
             }
           ?>
           <div class="caption">
             <h3><?php echo($row["name"]); ?></h3>
-            <p><?php echo($row["description"]); ?></p>
+            <?php $description = (strlen($row["description"]) > 13) ? substr($row["description"],0,150).'...' : $row["description"]; ?>
+            <p><?php echo($description); ?></p>
             <hr />
             <p>
               <div class="row">

@@ -1,3 +1,12 @@
+<?php
+  ob_start(); // This is buffer area where cookies and session are set and again set to expire them
+  require_once('class.user.php');
+  if(isset($_SESSION["login_user"])) {
+    $email = $_SESSION["login_user"];
+    $user = new User($email);
+    $user_field = $user->get_current_user();
+  }
+ ?>
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -13,18 +22,13 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         <?php 
-          if(isset($_SESSION["login_user"])) { 
-            include("shared/config.php");
-            $email = $_SESSION["login_user"];
-            $sql = "Select * from users where email = '$email' limit 1";
-            $result = mysqli_query($conn, $sql);
-            $field = mysqli_fetch_array($result);
-            if($field["admin"] == true) {
+          if(isset($_SESSION["login_user"])) {
+            if($user_field["admin"] == true) {
               echo('<li><a href="manage_events.php">Manage Events</a></li>');
             } else {
               echo('<li><a href="about.php">About Us</a></li>');
               echo('<li><a href="contact.php">Contact</a></li>');
-              echo('<li><a href="book_event.php">Book Event</a></li>');
+              echo('<li><a href="events_list.php">Events</a></li>');
             }
           } else {
             echo('<li><a href="about.php">About Us</a></li>');
@@ -35,9 +39,9 @@
       </ul>
       <form class="navbar-form navbar-left" role="search">
         <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
+          <input type="text" class="form-control" placeholder="Category Name">
         </div>
-        <button type="submit" class="btn btn-default">Submit</button>
+        <button type="submit" class="btn btn-default">Search</button>
       </form>
       <ul class="nav navbar-nav navbar-right">
         <?php if(!isset($_SESSION["login_user"])) { ?>
@@ -45,20 +49,14 @@
           <li><a href="sign_up.php">Register</a></li>
         <?php } else { ?>
           <?php
-            include("shared/config.php");
-            $email = $_SESSION["login_user"];
-            $sql = "Select CONCAT(`first_name`, ' ', `last_name`) as 'name', image from users where email = '$email' limit 1";
-            ob_start();
-            $result = mysqli_query($conn, $sql);
-            $field = mysqli_fetch_array($result);
-            if(!empty($field['image'])) {
-              echo('<li><img class="nav-img" src="data:image;base64,' . $field['image'] . '"></li>');
+            if(!empty($user_field['image'])) {
+              echo('<li><img class="nav-img" src="data:image;base64,' . $user_field['image'] . '"></li>');
             } else {
               echo('<li><img class="nav-img" src="assets/images/user_img.png"></li>');
             }
             
-            echo("<li><a href='#' >$field[name]</a></li>");
-            $conn->close();
+            echo("<li><a href='#' >$user_field[name]</a></li>");
+            
           ?>
           <li><a href="profile.php" >Profile</a></li>
           <li><a href="destroy_session.php" method="delete">Log Out</a></li>

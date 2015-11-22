@@ -1,5 +1,6 @@
 <?php
   ob_start();
+  session_start();
 ?>
 <div class="page-header">
   <h1>Contact Us</h1>

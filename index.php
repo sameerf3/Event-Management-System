@@ -1,35 +1,27 @@
 <?php
-  ob_start(); // This is buffer area where cookies and session are set and again set to expire them
   session_start(); // If Session Variable is present on the page?
+  require_once('class.user.php');
+  if(isset($_SESSION["login_user"])) {
+    $email = $_SESSION["login_user"];
+    $user = new User($email);
+    $user_field = $user->get_current_user();
+  }
+
+  ob_start(); // This is buffer area where cookies and session are set and again set to expire them
+  
 ?>
 <div class="page-header">
   <?php if(!isset($_SESSION["login_user"])) { ?>
     <h1>Welcome <small>to our Website</small></h1>
   <?php } else { ?>
     <?php
-      include("shared/config.php");
-      $email = $_SESSION["login_user"];
-      $sql = "Select CONCAT(`first_name`, ' ', `last_name`) as 'name' from users where email = '$email' limit 1";
-      
-      $result = mysqli_query($conn, $sql);
-      $field = mysqli_fetch_array($result);
-      echo("<h1>Welcome <small>$field[name]</small></h1>");
-      $conn->close();
+      echo("<h1>Welcome <small>$user_field[name]</small></h1>");
     ?>
   <?php } ?>
 </div>
 <?php 
   if(isset($_SESSION["login_user"]) || !isset($_SESSION["login_user"])) { 
-    include("shared/config.php");
-    if (!empty($_SESSION["login_user"])) {
-      $email = $_SESSION["login_user"];
-    } else {
-      $email = '';
-    }
-    $sql = "Select * from users where email = '$email' limit 1";
-    $result = mysqli_query($conn, $sql);
-    $field = mysqli_fetch_array($result);
-    if($field["admin"] != true) { 
+    if(empty($user_field) || $user_field["admin"] != true) { 
       include("shared/index_slider.html");
     ?>
       <br />

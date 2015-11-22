@@ -1,22 +1,25 @@
 <?php
   ob_start(); // This is buffer area where cookies and session are set and again set to expire them 
   session_start();
-  function validateForm($email_param, $password_param, $confirm_password_param) {
+  require_once('class.user.php');
+  $email = $_SESSION["login_user"];
+  $user = new User($email);
+  $current_user = $user->get_current_user();
+
+  function validateForm($__initialized_user, $email_param, $password_param, $confirm_password_param) {
     $errors = array();
-    // echo(empty($email_param));
-    include("shared/config.php");
+
     if($email_param == ""){
       array_push($errors, "Email is required");
     }
     if($password_param == ""){
       array_push($errors, "Password is required");
     }
+    // Validating Uniqueness
     $current_user_email = $_SESSION["login_user"];
-    $user = "select * from users where email = '$email_param' not in (select email from users where email != '$current_user_email')";
-    $result = $conn->query($user);
+    $result = $__initialized_user->validate_uniqueness($current_user_email, "on_update");
     if($result->num_rows > 0) {
       array_push($errors, "This Email has already been taken");
-      $conn->close();
     }
     if($password_param != $confirm_password_param) {
       array_push($errors, "Password Confiramtion is not matched with password");
@@ -41,13 +44,13 @@
     $password = $_POST["password"];
     $confirm_password = $_POST["confirm_password"];
 
-    if(validateForm($email, $password, $confirm_password)[1] == "true") {
+    if(validateForm($user, $email, $password, $confirm_password)[1] == "true") {
       echo "<div class='alert alert-danger'>";
       echo "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>";
       echo "<ul>";
-      $errors_length = count(validateForm($email, $password, $confirm_password)[0]);
+      $errors_length = count(validateForm($user, $email, $password, $confirm_password)[0]);
       for($x = 0; $x < $errors_length; $x++) {
-        echo "<li>" . validateForm($email, $password, $confirm_password)[0][$x] . "</li>";
+        echo "<li>" . validateForm($user, $email, $password, $confirm_password)[0][$x] . "</li>";
       }
       echo "</ul>";
       echo "</div>";
@@ -58,15 +61,14 @@
       $image_name = addslashes($_FILES['profile_image']['name']);
       $image = file_get_contents($image);
       $image = base64_encode($image);
-      include("shared/config.php");
-      $current_user_email = $_SESSION["login_user"];
-      $sql = "update users set first_name='$first_name', last_name = '$last_name', email = '$email', password = sha2('$pw',224), image='$image', image_name='$image_name' where email = '$current_user_email'";
 
-      if (mysqli_query($conn, $sql)) {
+      $current_user_email = $_SESSION["login_user"];
+      
+      $result = $user->update_user($first_name, $last_name, $email, $pw, $image, $image_name);
+      if ($result == true) {
         $_SESSION["login_user"] = $email;
         setcookie("flash_success", "Profile Updated.", time() + 3600);
         header("Location: profile.php");
-        $conn->close();
       } else {
         setcookie("flash_danger", "Something went wrong", time() + 3600);
         header("Location: profile.php");
@@ -83,7 +85,13 @@
         <!-- left column -->
         <div class="col-md-3">
           <div class="text-center">
-            <img src="//placehold.it/100" class="avatar img-circle" alt="avatar">
+            <?php
+              if(!empty($current_user['image'])) {
+                echo('<img class="avatar img-circle" src="data:image;base64,' . $current_user['image'] . '">');
+              } else {
+                echo('<img class="avatar img-circle" src="assets/images/user_img.png">');
+              } 
+             ?>
             <h6>Upload a different photo...</h6>
             
             <input type="file" name="profile_image" class="form-control">

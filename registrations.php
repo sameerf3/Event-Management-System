@@ -2,22 +2,24 @@
 	ob_start(); // This is buffer area where cookies and session are set and again set to expire them 
 	session_start();
 	include("authentication/is_user_signed_in.php");
+	require_once('class.user.php');
+	$user = new User;
 
-	function validateForm($email_param, $password_param, $confirm_password_param) {
+	function validateForm($__initialized_user, $email_param, $password_param, $confirm_password_param) {
 		$errors = array();
-		include("shared/config.php");
+
     if($email_param == ""){
     	array_push($errors, "Email is required");
     }
     if($password_param == ""){
     	array_push($errors, "Password is required");
     }
-    $user = "Select * from users where email = '$email_param'";
-    $result = $conn->query($user);
+		// Validating Uniqueness
+    $result = $__initialized_user->validate_uniqueness($email_param, "on_create");
     if($result->num_rows > 0) {
-    	array_push($errors, "This Email has already been taken");
-    	$conn->close();
+      array_push($errors, "This Email has already been taken");
     }
+
     if($password_param != $confirm_password_param) {
     	array_push($errors, "Password Confiramtion is not matched with password");
     }
@@ -41,26 +43,24 @@
 		$password = $_POST["password"];
 		$confirm_password = $_POST["confirm_password"];
 
-		if(validateForm($email, $password, $confirm_password)[1] == "true") {
+		if(validateForm($user, $email, $password, $confirm_password)[1] == "true") {
 			echo "<div class='alert alert-danger'>";
 			echo "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>";
 			echo "<ul>";
-			$errors_length = count(validateForm($email, $password, $confirm_password)[0]);
+			$errors_length = count(validateForm($user, $email, $password, $confirm_password)[0]);
 			for($x = 0; $x < $errors_length; $x++) {
-				echo "<li>" . validateForm($email, $password, $confirm_password)[0][$x] . "</li>";
+				echo "<li>" . validateForm($user, $email, $password, $confirm_password)[0][$x] . "</li>";
 			}
 			echo "</ul>";
 			echo "</div>";
 		} else {
 			$pw = str_replace(' ', '', $password);
-			include("shared/config.php");
-			$sql = "insert into users (first_name, last_name, email, password)
-			values('$first_name', '$last_name', '$email', sha2('$pw',224))";
-			if ($conn->query($sql) == TRUE) {
+			$result = $user->create_user($first_name, $last_name, $email, $pw);
+			
+			if ($result == TRUE) {
 				$_SESSION["login_user"] = $email;
 				setcookie("flash_success", "Your account has been created successfully.", time() + 3600);
 				header("Location: index.php");
-				$conn->close();
 			} else {
 				setcookie("flash_danger", "Something went wrong", time() + 3600);
 				header("Location: sign_up.php");

@@ -2,20 +2,14 @@
   ob_start(); // This is buffer area where cookies and session are set and again set to expire them
   session_start(); // If Session Variable is present on the page?
   include("authentication/authenticated_user.php");
-  include("shared/config.php");
-  $event_id = 0;
   $event_id = $_GET["id"];
-  $event = "SELECT * FROM `event_categories` WHERE id=$event_id";
-  $result = mysqli_query($conn, $event);
-  if($result == true) {
-    $field = mysqli_fetch_array($result);
-  } else {
-    setcookie("flash_danger", "Something went wrong", time() + 3600);
-    header("Location: manage_events.php");
-  }
+  require_once('class.event.php');
+  $event = new Event($event_id);
+  $event_field = $event->get_event();
+  
 ?>
 <div class="user_profile">
-  <h1>Edit <?php echo $field["name"]; ?></h1>
+  <h1>Edit <?php echo $event_field["name"]; ?></h1>
   <hr>
   <form action="update_event.php?id=<?php echo $event_id; ?>" method="post" enctype="multipart/form-data">
     <div class="row">
@@ -23,15 +17,15 @@
       <div class="col-md-6">
         <div class="form-group">
           <label>Name</label>
-          <input class="form-control" placeholder="Event Name" value="<?php echo($field["name"]); ?>" name="event_name" type="text" />  
+          <input class="form-control" placeholder="Event Name" value="<?php echo($event_field["name"]); ?>" name="event_name" type="text" />  
         </div>
         <div class="form-group">
           <label>Price</label>
-          <input class="form-control" placeholder="Price" value="<?php echo($field["price"]); ?>" name="event_price" type="text" />  
+          <input class="form-control" placeholder="Price" value="<?php echo($event_field["price"]); ?>" name="event_price" type="text" />  
         </div>
         <div class="form-group">
           <label>Description</label>
-          <textarea class="form-control" rows="7" placeholder="About Event" name="event_description"><?php echo($field["description"]); ?></textarea>
+          <textarea class="form-control" rows="7" placeholder="About Event" name="event_description"><?php echo($event_field["description"]); ?></textarea>
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-default">Update</button>
@@ -43,26 +37,21 @@
           <div class="panel-body">
             <div class="row">
               <?php 
-                try {
-                  $event_images = "SELECT `id`, `event_image`, `event_image_name` FROM `event_images` WHERE event_category_id=$event_id";
-                  $result_images = mysqli_query($conn, $event_images);
-                  if ($result_images->num_rows > 0) {
-                    while($row = $result_images->fetch_assoc()) {
-                  ?>
-                    <div class="col-xs-4" data-toggle="tooltip" data-placement="left" title="Click for options">
-                      <a href="#" class="thumbnail" data-toggle="popover" data-content="<a onclick='return confirm('Are you sure?');' href='remove_event_image.php?id=<?php echo($row['id']); ?>&event_id=<?php echo($event_id); ?>'><i class='glyphicon glyphicon-trash'></i> Remove</a>">
-                        <?php echo('<img class="event_images" src="data:image;base64,' . $row['event_image'] . '">'); ?>
-                      </a>
-                    </div>
-                  <?php
-                    }
-                  } else {
-                    echo '<div class="col-xs-12 col-md-12">';
-                    echo "<div class='alert alert-success'>No Events Images are present</div>";
-                    echo '</div>';
+                $result_images = $event->get_event_all_images();
+                if ($result_images->num_rows > 0) {
+                  while($row = $result_images->fetch_assoc()) {
+                ?>
+                  <div class="col-xs-4" data-toggle="tooltip" data-placement="left" title="Click for options">
+                    <a href="#" class="thumbnail" data-toggle="popover" data-content="<a onclick='return confirm('Are you sure?');' href='remove_event_image.php?id=<?php echo($row['id']); ?>&event_id=<?php echo($event_id); ?>'><i class='glyphicon glyphicon-trash'></i> Remove</a>">
+                      <?php echo('<img class="event_images" src="data:image;base64,' . $row['event_image'] . '">'); ?>
+                    </a>
+                  </div>
+                <?php
                   }
-                } catch(Exception $e) {
-                  echo "<div class='alert alert-danger'>". $e->getMessage() ."</div>";
+                } else {
+                  echo '<div class="col-xs-12 col-md-12">';
+                  echo "<div class='alert alert-success'>No Events Images are present</div>";
+                  echo '</div>';
                 }
               ?>
             </div>
@@ -86,7 +75,6 @@
   </form>
 </div>
 <?php
-  $conn->close();
   $pagemaincontent = ob_get_contents();
   ob_end_clean();
   include("application.php");

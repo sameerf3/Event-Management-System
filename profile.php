@@ -2,11 +2,10 @@
   ob_start(); // This is buffer area where cookies and session are set and again set to expire them
   session_start(); // If Session Variable is present on the page?
   include("authentication/authenticated_user.php");
-  include("shared/config.php");
+  require_once('class.user.php');
   $email = $_SESSION["login_user"];
-  $sql = "Select * from users where email = '$email' limit 1";
-  $result = mysqli_query($conn, $sql);
-  $field = mysqli_fetch_array($result);
+  $user = new User($email);
+  $current_user = $user->get_current_user();
 ?>
 <div class="user_profile">
   <h1>Edit Profile</h1>
@@ -17,8 +16,8 @@
         <div class="col-md-3">
           <div class="text-center">
             <?php 
-              if(!empty($field['image'])) {
-                echo('<img class="avatar img-circle" src="data:image;base64,' . $field['image'] . '">');
+              if(!empty($current_user['image'])) {
+                echo('<img class="avatar img-circle" src="data:image;base64,' . $current_user['image'] . '">');
               } else {
                 echo('<img class="avatar img-circle" src="assets/images/user_img.png">');
               }
@@ -40,19 +39,19 @@
           <div class="row form-group">
             <label class="col-lg-3 control-label">First name:</label>
             <div class="col-lg-8">
-              <input type="text" name="first_name" class="form-control" id="" value="<?php echo($field['first_name']); ?>" placeholder="First Name">
+              <input type="text" name="first_name" class="form-control" id="" value="<?php echo($current_user['first_name']); ?>" placeholder="First Name">
             </div>
           </div>
           <div class="row form-group">
             <label class="col-lg-3 control-label">Last name:</label>
             <div class="col-lg-8">
-              <input type="text" name="last_name" class="form-control" id="" value="<?php echo($field['last_name']); ?>" placeholder="Last Name">
+              <input type="text" name="last_name" class="form-control" id="" value="<?php echo($current_user['last_name']); ?>" placeholder="Last Name">
             </div>
           </div>
           <div class="row form-group">
             <label class="col-lg-3 control-label">Email:</label>
             <div class="col-lg-8">
-              <input type="email" name="email" class="form-control" id="" value="<?php echo($field['email']); ?>" placeholder="Email Address">
+              <input type="email" name="email" class="form-control" id="" value="<?php echo($current_user['email']); ?>" placeholder="Email Address">
             </div>
           </div>
           <div class="row form-group">
@@ -79,7 +78,6 @@
 </div>
 <hr>
 <?php
-  $conn->close();
   $pagemaincontent = ob_get_contents();
   ob_end_clean();
   include("application.php");
