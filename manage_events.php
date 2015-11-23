@@ -1,5 +1,6 @@
 <?php
   session_start();
+  include("authentication/authenticated_admin.php");
   require_once('class.event.php');
   $event = new Event;
   $events = $event->get_all_events();

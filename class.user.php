@@ -94,5 +94,29 @@
 	    	echo "$e->getMessage();";
 		  }
 		}
+
+		public function user_events($user_id) {
+			try {
+				$id = $user_id;
+				$sql = "SELECT * FROM book_event where user_id = '". $id ."'";
+				$conn = $this->get_connection();
+				$result = mysqli_query($conn, $sql);
+		    return $result;
+	    } catch (Exception $e) {
+	    	echo "$e->getMessage();";
+		  }
+		}
+
+		public function remove_user_events($book_event_id) {
+			try {
+				$id = $book_event_id;
+				$sql = 'DELETE FROM `book_event` WHERE id =' . $id;
+				$conn = $this->get_connection();
+				$result = mysqli_query($conn, $sql);
+		    return $result;
+	    } catch (Exception $e) {
+	    	echo "$e->getMessage();";
+		  }
+		}
 	}
 ?>

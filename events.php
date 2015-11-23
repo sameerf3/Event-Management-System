@@ -1,9 +1,22 @@
 <?php
+	ob_start();
+	// If Session Variable is present on the page?
+  session_start();
+
   require_once('class.event.php');
   $event = new Event;
-  $events = $event->get_recent_events();
+  if(isset($_GET["event_name"])) {
+  	$event_name = $_GET["event_name"];
+  	$events = $event->get_all_events($event_name);
+  } else {
+  	$events = $event->get_all_events();
+  }
+  
+ 
 ?>
-<blockquote><h2>Recent Events</h2></blockquote>
+<div class="page-header">
+	<h1>Events</h1>
+</div>
 <div class="row">
   <?php
     if ($events->num_rows > 0) {
@@ -40,7 +53,6 @@
           </div>
         </div>
       </div>
-      
     <?php
       }
     } else {
@@ -48,8 +60,8 @@
     }
   ?>
 </div>
-<div class="row">
-  <div class="col-sm-6 col-md-12">
-    <h3>Find out more <a href="sign_up.php">Register</a> for free ...</h3>
-  </div>
-</div>
+<?php
+  $pagemaincontent = ob_get_contents();
+  ob_end_clean();
+  include("application.php");
+?>

@@ -34,9 +34,25 @@
 		  }
 		}
 
-		public function get_all_events() {
+		public function get_recent_events() {
 			try {
-		    $sql = "SELECT * FROM event_categories";
+		    $sql = "SELECT * FROM event_categories limit 4";
+		    $conn = $this->get_connection();
+		    $result = $conn->query($sql);
+	      return $result;
+	    } catch (Exception $e) {
+	    	echo "$e->getMessage();";
+		  }
+		}
+
+		public function get_all_events($event_name = "") {
+			try {
+				if (!empty($event_name)) {
+					$sql = "SELECT * FROM event_categories WHERE name LIKE '%". $event_name ."%'";
+				} else {
+					$sql = "SELECT * FROM event_categories";
+				}
+		    
 		    $conn = $this->get_connection();
 		    $result = $conn->query($sql);
 	      return $result;

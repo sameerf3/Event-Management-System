@@ -16,7 +16,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.php">Event Management System</a>
+      <a class="navbar-brand" href="index.php">Event Store</a>
     </div>
 
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -28,7 +28,7 @@
             } else {
               echo('<li><a href="about.php">About Us</a></li>');
               echo('<li><a href="contact.php">Contact</a></li>');
-              echo('<li><a href="events_list.php">Events</a></li>');
+              echo('<li><a href="events.php">Events</a></li>');
             }
           } else {
             echo('<li><a href="about.php">About Us</a></li>');
@@ -37,12 +37,15 @@
         ?>
 
       </ul>
-      <form class="navbar-form navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Category Name">
-        </div>
-        <button type="submit" class="btn btn-default">Search</button>
-      </form>
+      <?php 
+        if(isset($_SESSION["login_user"])) { ?>
+            <form class="navbar-form navbar-left" action="events.php" role="search">
+              <div class="form-group">
+                <input type="text" name="event_name" class="form-control" placeholder="Category Name">
+              </div>
+              <button type="submit" class="btn btn-default">Search</button>
+            </form>
+      <?php } ?>
       <ul class="nav navbar-nav navbar-right">
         <?php if(!isset($_SESSION["login_user"])) { ?>
           <li><a href="#" data-toggle="modal" data-target="#login_modal">Login</a></li>
@@ -54,12 +57,19 @@
             } else {
               echo('<li><img class="nav-img" src="assets/images/user_img.png"></li>');
             }
-            
-            echo("<li><a href='#' >$user_field[name]</a></li>");
-            
           ?>
-          <li><a href="profile.php" >Profile</a></li>
-          <li><a href="destroy_session.php" method="delete">Log Out</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php echo("$user_field[name]"); ?> <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <?php
+                if($user_field["admin"] != true) {
+                  echo('<li><a href="user_events.php">My Events</a></li>');
+                } ?>
+              <li><a href="profile.php" >Profile</a></li>
+              <li role="separator" class="divider"></li>
+              <li><a href="destroy_session.php" method="delete">Log Out</a></li>
+            </ul>
+          </li>
         <?php } ?>
       </ul>
     </div>

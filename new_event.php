@@ -1,6 +1,7 @@
 <?php
   ob_start(); // This is buffer area where cookies and session are set and again set to expire them
   session_start(); // If Session Variable is present on the page?
+  include("authentication/authenticated_admin.php");
   include("authentication/authenticated_user.php");
 ?>
 <div class="user_profile">
